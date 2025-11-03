@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SeguridadConnection"));
 });
 
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();

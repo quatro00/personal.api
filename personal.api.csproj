@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\Supervisor\**" />
+    <Compile Remove="Controllers\Usuario\**" />
+    <Content Remove="Controllers\Supervisor\**" />
+    <Content Remove="Controllers\Usuario\**" />
+    <EmbeddedResource Remove="Controllers\Supervisor\**" />
+    <EmbeddedResource Remove="Controllers\Usuario\**" />
+    <None Remove="Controllers\Supervisor\**" />
+    <None Remove="Controllers\Usuario\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="EPPlus" Version="7.6.0" />
@@ -24,11 +35,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="QuestPDF" Version="2025.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\Usuario\" />
-    <Folder Include="Controllers\Supervisor\" />
   </ItemGroup>
 
 </Project>
