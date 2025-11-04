@@ -54,12 +54,18 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddDbContext<PersonalContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection"));
+});
+
 builder.Services.AddDbContext<AuthDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("SeguridadConnection"));
 });
 
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IOrganizacionRepository, OrganizacionRepository>();
 /*
 builder.Services.AddScoped<IAspNetUsersRepository, AspNetUsersRepository>();
 
@@ -110,7 +116,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            RoleClaimType = "roles"   // ?? IMPORTANTE
         };
     });
 
