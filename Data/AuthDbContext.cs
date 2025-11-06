@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using personal.api.Models;
 
-namespace personal.api.Data
+namespace Farmacia.UI.Data
 {
-    public class AuthDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
+    public class AuthDbContext : IdentityDbContext<IdentityUser, ApplicationRole, string>
     {
         public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
         {
@@ -31,6 +30,6 @@ namespace personal.api.Data
 
     public class ApplicationRole : IdentityRole
     {
-        //public int SistemaId { get; set; }
+        public int SistemaId { get; set; }
     }
 }

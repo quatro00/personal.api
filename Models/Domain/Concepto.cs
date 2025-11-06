@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace personal.api.Models.Domain;
+namespace Personal.UI.Models.Domain;
 
 public partial class Concepto
 {

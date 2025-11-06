@@ -1,4 +1,4 @@
-﻿namespace personal.api.Models
+﻿namespace Farmacia.UI.Models
 {
     public class ResponseModel
     {
@@ -18,7 +18,6 @@
             this.response = r;
             this.message = m;
 
-            /*
             if (m == "")
             {
                 switch (r)
@@ -31,32 +30,6 @@
                         break;
                 }
             }
-            */
-        }
-    }
-
-    public class ResponseModel_2<T>
-    {
-        public T Result { get; set; }
-        public bool Response { get; set; }
-        public string Message { get; set; }
-        public string Data { get; set; }
-
-        public ResponseModel_2()
-        {
-            this.Response = false;
-            this.Message = "Ocurrió un error inesperado";
-        }
-
-        public void SetResponse(bool r, string m = "")
-        {
-            this.Response = r;
-            this.Message = m;
-
-            //if (string.IsNullOrEmpty(m))
-            //{
-            //    this.Message = r ? "Datos guardados con éxito." : "Ocurrió un error inesperado";
-            //}
         }
     }
 }

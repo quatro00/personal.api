@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace personal.api.Helpers
+namespace Farmacia.UI.Helpers
 {
     public interface IClaimsPrincipalHelper
     {
@@ -19,10 +19,6 @@ namespace personal.api.Helpers
         public static string GetId(this ClaimsPrincipal User)
         {
             return User.FindFirst("Id").Value;
-        }
-        public static string GetOrganizacionId(this ClaimsPrincipal User)
-        {
-            return User.FindFirst("OrganizacionId").Value;
         }
     }
 }
