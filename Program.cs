@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Personal.UI.Data;
+using Personal.UI.Mappings;
+using Personal.UI.Repositories.Implementation;
+using Personal.UI.Repositories.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +30,9 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
 });
 
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IOrganizacionRepository, OrganizacionRepository>();
 
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddIdentityCore<IdentityUser>()
     .AddRoles<ApplicationRole>()
     .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("BDS")
