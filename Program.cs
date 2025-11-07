@@ -32,6 +32,7 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IOrganizacionRepository, OrganizacionRepository>();
 builder.Services.AddScoped<IConceptoRepository, ConceptoRepository>();
+builder.Services.AddScoped<IReporteConceptoRepository, ReporteConceptoRepository>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddIdentityCore<IdentityUser>()

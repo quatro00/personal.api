@@ -15,9 +15,11 @@ public partial class ReporteConcepto
 
     public string Nombre { get; set; } = null!;
 
+    public string Fecha { get; set; } = null!;
+
     public string Duracion { get; set; } = null!;
 
-    public int Turno { get; set; }
+    public string Turno { get; set; } = null!;
 
     public string Autorizo { get; set; } = null!;
 

@@ -32,4 +32,6 @@ public partial class Organizacion
     public virtual ICollection<Notificacion> Notificacions { get; set; } = new List<Notificacion>();
 
     public virtual ICollection<ReporteConcepto> ReporteConceptos { get; set; } = new List<ReporteConcepto>();
+
+    public virtual ICollection<ReporteConceptosBitacora> ReporteConceptosBitacoras { get; set; } = new List<ReporteConceptosBitacora>();
 }
