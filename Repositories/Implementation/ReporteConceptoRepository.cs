@@ -1,8 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Farmacia.UI.Models;
+using Microsoft.EntityFrameworkCore;
 using Personal.UI.Data;
 using Personal.UI.Models.Domain;
 using Personal.UI.Models.DTO.Notificacion;
 using Personal.UI.Repositories.Interface;
+using System.Net;
+using System.Net.Mail;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Personal.UI.Repositories.Implementation
 {
@@ -56,6 +60,86 @@ namespace Personal.UI.Repositories.Implementation
                 }).OrderByDescending(x=>x.Fecha).ToList()
             })
             .ToList();
+
+            return resultado;
+        }
+
+        public async Task<ResponseModel> EnviarNotificaciones(List<NotificacionDto> model)
+        {
+            ResponseModel resultado = new ResponseModel();
+            try
+            {
+                var fromAddress = new MailAddress("f19668@365i.team", "UMAE 25 Adquisiciones");
+                string fromPassword = "Suikoden2";
+
+                var path = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "Temp",
+                "NotificacionIncidencias.html"
+            );
+                foreach(var item in model)
+                {
+                    string html = File.ReadAllText(path);
+                    string tabla = "";
+                    foreach(var det in item.Detalle)
+                    {
+                        tabla = tabla + "<tr>" +
+                            "<td style=\"border:1px solid #dcdcdc;\">" + det.Fecha + "</td>" +
+                            "<td style=\"border:1px solid #dcdcdc;\">" + det.Concepto + "</td>" +
+                            "<td style=\"border:1px solid #dcdcdc;\">" + det.Descripcion + "</td>" +
+                            "<td style=\"border:1px solid #dcdcdc; text-align:center;\">" + det.IncEnt + "</td>" +
+                            "<td style=\"border:1px solid #dcdcdc; text-align:center;\">" + det.IncSal + "</td>" +
+                            "</tr>";
+                    }
+                    html = html
+                    .Replace("{{#Nombre}}", item.Nombre)
+                    .Replace("{{#Quincena}}", item.Quincena)
+                    .Replace("{{#Matricula}}", item.Matricula)
+                    .Replace("{{#Tabla}}", tabla);
+
+                    var smtp = new SmtpClient
+                    {
+                        Host = "smtp.office365.com",
+                        Port = 587,
+                        UseDefaultCredentials = false,
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        Credentials = new NetworkCredential(fromAddress.Address, fromPassword),
+                        TargetName = "STARTTLS/smtp.office365.com", // Set to avoid MustIssueStartTlsFirst exception
+                        EnableSsl = true,
+                    };
+                    
+                    using (var message = new MailMessage("f19668@365i.team", "josecarlosgarciadiaz@gmail.com")
+                    {
+                        IsBodyHtml = true,
+                        Subject = "documentacion pendiente",
+                        Body = "<h1>Prueba SMTP</h1><p>Si llega, SMTP funciona</p>"
+                    })
+                    {
+
+                        //Attachment at = new Attachment(ruta, MediaTypeNames.Application.Octet);
+                        //message.Attachments.Add(at);
+
+                        //message.CC.Add(new MailAddress("alejandro.jimenezga@imss.gob.mx"));
+                        try
+                        {
+                            smtp.Send(message);
+
+                        }
+                        catch (Exception ioe)
+                        {
+                            //marcamos el estatus como error en envio de notificacion
+                            //(new PenalizacionBL()).ActuallizarEstatusPenalizacion(model.Folio, 5, SessionHelper.GetFullUser().Matricula);
+                            int x = 0;
+                        }
+
+                    }
+
+                }
+            }
+            catch
+            {
+                throw;
+            }
 
             return resultado;
         }

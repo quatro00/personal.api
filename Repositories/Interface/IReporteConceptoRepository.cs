@@ -1,4 +1,5 @@
-﻿using Personal.UI.Models.Domain;
+﻿using Farmacia.UI.Models;
+using Personal.UI.Models.Domain;
 using Personal.UI.Models.DTO.Notificacion;
 
 namespace Personal.UI.Repositories.Interface
@@ -7,5 +8,6 @@ namespace Personal.UI.Repositories.Interface
     {
         Task GuardarReporteConBitacoraAsync(IEnumerable<ReporteConcepto> conceptos,ReporteConceptosBitacora bitacora);
         Task<List<NotificacionDto>> CalcularNotificaciones(Guid organizacionId);
+        Task<ResponseModel> EnviarNotificaciones(List<NotificacionDto> model);
     }
 }
