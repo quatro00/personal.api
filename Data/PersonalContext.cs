@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Personal.UI.Models.Domain;
+using Personal.UI.Models.DTO.Notificacion;
 
 namespace Personal.UI.Data;
 
 public partial class PersonalContext : DbContext
 {
+    public DbSet<CorreoTrabajadorDto> CorreoTrabajador { get; set; }
     public PersonalContext()
     {
     }
@@ -38,6 +40,8 @@ public partial class PersonalContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<CorreoTrabajadorDto>().HasNoKey();
+
         modelBuilder.Entity<CatTipoConcepto>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_CatTipoConcepto_1");

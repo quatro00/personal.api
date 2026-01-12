@@ -101,6 +101,29 @@ namespace Personal.UI.Controllers.Admin
 
         }
 
+        [HttpGet("GetQuincenas/{organizacionId}")]
+       // [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> GetQuincenas(Guid organizacionId)
+        {
+            try
+            {
+                var result = await this.organizacionRepository.GetQuincenas(organizacionId);
+                if (result == null)
+                {
+                    return NotFound(result);
+                }
+
+                List<GetQuincenaDto> dto = result.result;
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message); // O devolver un BadRequest(400) si el error es de entrada
+            }
+
+        }
+
         [Authorize(Roles = "Administrador")]
         [HttpPut("{id}/desactivar")]
         public async Task<IActionResult> Desactivar(Guid id)

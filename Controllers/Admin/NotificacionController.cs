@@ -55,6 +55,35 @@ namespace Personal.UI.Controllers.Admin
             }
         }
 
+        [HttpPost("ConsultaNotificaciones")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> ConsultaNotificaciones([FromBody] ConsultarNotificacionesRequest model)
+        {
+            // Validar si el modelo es válido
+            if (!ModelState.IsValid)
+            {
+                User.GetId();
+                return BadRequest("Modelo de datos invalido.");
+            }
+
+            try
+            {
+                var result = await this.reporteConceptoRepository.ConsultarNotificaciones(model.OrganizacionId, model.Quincena);
+                //var dto = mapper.Map<Concepto>(model);
+                //dto.UsuarioCreacion = User.GetId();
+                //dto.FechaCreacion = DateTime.Now;
+                //// Agregar el paciente al repositorio
+                //await this.conceptoRepository.AddAsync(dto);
+
+                //// Devolver la respuesta con el nuevo paciente
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException.Message); // O devolver un BadRequest(400) si el error es de entrada
+            }
+        }
+
         [HttpPost("EnviarNotificaciones")]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> EnviarNotificaciones([FromBody] List<NotificacionDto> model)
