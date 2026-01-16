@@ -5,6 +5,8 @@ using Personal.UI.Data;
 using Personal.UI.Models.Domain;
 using Personal.UI.Models.DTO.Notificacion;
 using Personal.UI.Repositories.Interface;
+using System.Collections.Generic;
+using System.Data;
 using System.Net;
 using System.Net.Mail;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -25,13 +27,9 @@ namespace Personal.UI.Repositories.Implementation
         public async Task<List<NotificacionDto>> CalcularNotificaciones(Guid organizacionId)
         {
             //buscamos los datos del ultimo reporte cargado
-            var reporteConceptos = _context.Set<ReporteConcepto>();
-            var bitacora = _context.Set<ReporteConceptosBitacora>();
-            var conceptos = _context.Set<Concepto>();
-
-            var bitacoraList = await bitacora.Where(x=>x.OrganizacionId == organizacionId).OrderByDescending(x=>x.Fecha).FirstOrDefaultAsync();
-            var reporteConceptosList = await reporteConceptos.Where(x=>x.OrganizacionId == bitacoraList.OrganizacionId && x.Quincena == bitacoraList.Quincena).ToListAsync();
-            var conceptosList = await conceptos.Where(x=>x.OrganizacionId == organizacionId && x.Activo == true).ToListAsync();
+            var bitacora = await _context.Set<ReporteConceptosBitacora>().Where(x => x.OrganizacionId == organizacionId).OrderByDescending(x => x.Fecha).FirstOrDefaultAsync();
+            var reporteConceptosList = await _context.Set<ReporteConcepto>().Where(x => x.OrganizacionId == organizacionId && x.Quincena == bitacora.Quincena).ToListAsync();
+            var conceptosList = await _context.Set<Concepto>().Where(x => x.OrganizacionId == organizacionId && x.Activo == true).ToListAsync();
 
             var conceptosGenerales = conceptosList.Where(x => x.TipoConceptoId == 1).Select(x => x.Clave).ToArray();
             var conceptosEntrada = conceptosList.Where(x => x.TipoConceptoId == 2).Select(x => x.Clave).ToArray();
@@ -61,22 +59,56 @@ namespace Personal.UI.Repositories.Implementation
                 }).OrderByDescending(x=>x.Fecha).ToList()
             })
             .ToList();
+            var matriculas = resultado
+            .Select(x => int.Parse(x.Matricula.Trim()))
+            .Distinct()
+            .ToList();
 
-            foreach (var item in resultado)
+            var table = new DataTable();
+            table.Columns.Add("Matricula", typeof(int));
+
+            foreach (var m in matriculas)
             {
-                item.Correo = GetCorreo(item.Matricula);
+                table.Rows.Add(m);
             }
+
+            var param = new SqlParameter("@Matriculas", table)
+            {
+                TypeName = "dbo.MatriculaList"
+            };
+
+            /*
+              var correoTrabajador = this._context.Set<CorreoTrabajadorDto>()
+                .FromSqlRaw("EXEC SPQ_GetCorreoTrabajador @Matricula",
+                    new SqlParameter("@Matricula", matricula))
+                .AsEnumerable()
+                .FirstOrDefault();
+             */
+            _context.Database.SetCommandTimeout(0);
+            var correos = await _context.Set<CorreoDto>()
+            .FromSqlRaw("EXEC SPQ_GetCorreosPorMatriculas @Matriculas", param)
+            .ToListAsync();
+
+            foreach (var item in correos)
+            {
+                foreach (var itm in resultado.Where(x => x.Matricula == item.Matricula.ToString()))
+                {
+                    itm.Correo = item.Correo;
+                }
+
+            }
+
             return resultado;
         }
         public async Task<List<NotificacionDto>> ConsultarNotificaciones(Guid organizacionId, string quincena)
         {
             //buscamos los datos del ultimo reporte cargado
-            var reporteConceptos = _context.Set<ReporteConcepto>();
-            var bitacora = _context.Set<ReporteConceptosBitacora>();
-            var conceptos = _context.Set<Concepto>();
+            var reporteConceptosList = await _context.Set<ReporteConcepto>().Where(x => x.OrganizacionId == organizacionId && x.Quincena == quincena).ToListAsync();
+            var bitacora =await _context.Set<ReporteConceptosBitacora>().ToListAsync();
+            var conceptosList = await _context.Set<Concepto>().Where(x => x.OrganizacionId == organizacionId && x.Activo == true).ToListAsync();
 
-            var reporteConceptosList = await reporteConceptos.Where(x => x.OrganizacionId == organizacionId && x.Quincena == quincena).ToListAsync();
-            var conceptosList = await conceptos.Where(x => x.OrganizacionId == organizacionId && x.Activo == true).ToListAsync();
+            //var reporteConceptosList = await reporteConceptos.Where(x => x.OrganizacionId == organizacionId && x.Quincena == quincena).ToListAsync();
+            //var conceptosList = await conceptos.Where(x => x.OrganizacionId == organizacionId && x.Activo == true).ToListAsync();
 
             var conceptosGenerales = conceptosList.Where(x => x.TipoConceptoId == 1).Select(x => x.Clave).ToArray();
             var conceptosEntrada = conceptosList.Where(x => x.TipoConceptoId == 2).Select(x => x.Clave).ToArray();
@@ -107,10 +139,45 @@ namespace Personal.UI.Repositories.Implementation
             })
             .ToList();
 
-            foreach (var item in resultado)
+            var matriculas = resultado
+            .Select(x => int.Parse(x.Matricula.Trim()))
+            .Distinct()
+            .ToList();
+
+            var table = new DataTable();
+            table.Columns.Add("Matricula", typeof(int));
+
+            foreach (var m in matriculas)
             {
-                item.Correo = GetCorreo(item.Matricula);
+                table.Rows.Add(m);
             }
+
+            var param = new SqlParameter("@Matriculas", table)
+            {
+                TypeName = "dbo.MatriculaList"
+            };
+
+            /*
+              var correoTrabajador = this._context.Set<CorreoTrabajadorDto>()
+                .FromSqlRaw("EXEC SPQ_GetCorreoTrabajador @Matricula",
+                    new SqlParameter("@Matricula", matricula))
+                .AsEnumerable()
+                .FirstOrDefault();
+             */
+            _context.Database.SetCommandTimeout(0);
+            var correos = await _context.Set<CorreoDto>()
+            .FromSqlRaw("EXEC SPQ_GetCorreosPorMatriculas @Matriculas", param)
+            .ToListAsync();
+
+            foreach (var item in correos)
+            {
+                foreach (var itm in resultado.Where(x => x.Matricula == item.Matricula.ToString()))
+                {
+                    itm.Correo = item.Correo;
+                }
+
+            }
+
             return resultado;
         }
         public string GetCorreo(string matricula)

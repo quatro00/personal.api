@@ -9,6 +9,7 @@ namespace Personal.UI.Data;
 public partial class PersonalContext : DbContext
 {
     public DbSet<CorreoTrabajadorDto> CorreoTrabajador { get; set; }
+    public DbSet<CorreoDto> CorreosDto { get; set; }
     public PersonalContext()
     {
     }
@@ -39,6 +40,7 @@ public partial class PersonalContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<CorreoTrabajadorDto>().HasNoKey();
+        modelBuilder.Entity<CorreoDto>().HasNoKey();
 
         modelBuilder.Entity<CatTipoConcepto>(entity =>
         {

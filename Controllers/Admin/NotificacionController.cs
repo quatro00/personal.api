@@ -51,7 +51,7 @@ namespace Personal.UI.Controllers.Admin
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.InnerException.Message); // O devolver un BadRequest(400) si el error es de entrada
+                return StatusCode(500, ex.Message); // O devolver un BadRequest(400) si el error es de entrada
             }
         }
 
@@ -80,7 +80,7 @@ namespace Personal.UI.Controllers.Admin
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.InnerException.Message); // O devolver un BadRequest(400) si el error es de entrada
+                return StatusCode(500, ex.Message); // O devolver un BadRequest(400) si el error es de entrada
             }
         }
 
@@ -113,7 +113,7 @@ namespace Personal.UI.Controllers.Admin
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.InnerException.Message); // O devolver un BadRequest(400) si el error es de entrada
+                return StatusCode(500, ex.Message); // O devolver un BadRequest(400) si el error es de entrada
             }
         }
     }
