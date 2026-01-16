@@ -49,6 +49,7 @@ namespace Personal.UI.Repositories.Implementation
                 Quincena = g.Key.Quincena,
                 Matricula = g.Key.Matricula,
                 Nombre = g.Key.Nombre,
+                OrganizacionId = organizacionId,
                 Detalle = g.Select(x => new NotificacionDetDto
                 {
                     Fecha = x.Fecha,
@@ -200,11 +201,12 @@ namespace Personal.UI.Repositories.Implementation
             }
             
         }
-        public async Task<ResponseModel> EnviarNotificaciones(List<NotificacionDto> model)
+        public async Task<ResponseModel> EnviarNotificaciones(List<NotificacionDto> model, string usuarioId)
         {
             ResponseModel resultado = new ResponseModel();
             try
             {
+                List<Notificacion> notificaciones = new List<Notificacion>();
                 var fromAddress = new MailAddress("f19668@365i.team", "UMAE 25 Adquisiciones");
                 string fromPassword = "Suikoden2";
 
@@ -258,21 +260,55 @@ namespace Personal.UI.Repositories.Implementation
                             //message.Attachments.Add(at);
 
                             //message.CC.Add(new MailAddress("alejandro.jimenezga@imss.gob.mx"));
+                            Notificacion notificacion = new Notificacion()
+                            {
+                                OrganizacionId = item.OrganizacionId,
+                                Quincena = item.Quincena,
+                                Matricula = item.Matricula,
+                                Nombre = item.Nombre,
+                                Correo = item.Correo,
+                                Cc = "",
+                                Enviado = false,
+                                Mensaje = "",
+                                Activo = true,
+                                FechaCreacion = DateTime.Now,
+                                UsuarioCreacion = usuarioId,
+                                NotificacionDets = item.Detalle.Select(x => new NotificacionDet()
+                                {
+                                    Fecha = x.Fecha,
+                                    Concepto = x.Concepto,
+                                    Descripcion = x.Descripcion,
+                                    IncEnt = x.IncEnt,
+                                    IncSal = x.IncSal,
+                                    Activo = true,
+                                    FechaCreacion = DateTime.Now,
+                                    UsuarioCreacion = usuarioId,
+                                }).ToList()
+                            };
                             try
                             {
                                 smtp.Send(message);
+                                notificacion.Enviado = true;
+                                notificacion.Mensaje = "Correo enviado correctamente.";
+                                notificaciones.Add(notificacion);
+                                //await this._context.Set<Notificacion>().AddAsync(notificacion);
 
                             }
                             catch (Exception ioe)
                             {
                                 //marcamos el estatus como error en envio de notificacion
                                 //(new PenalizacionBL()).ActuallizarEstatusPenalizacion(model.Folio, 5, SessionHelper.GetFullUser().Matricula);
+                                notificacion.Enviado = false;
+                                notificacion.Mensaje = ioe.Message;
+                                notificaciones.Add(notificacion);
                                 int x = 0;
                             }
 
                         }
                     }
                 }
+                await this._context.Set<Notificacion>().AddRangeAsync(notificaciones);
+                await this._context.SaveChangesAsync();
             }
             catch
             {

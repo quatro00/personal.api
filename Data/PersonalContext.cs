@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Personal.UI.Models.Domain;
+using Personal.UI.Models.DTO.Notificacion;
 
 namespace Personal.UI.Data;
 

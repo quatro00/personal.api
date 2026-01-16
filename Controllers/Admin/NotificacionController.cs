@@ -98,7 +98,7 @@ namespace Personal.UI.Controllers.Admin
             try
             {
                 //buscamos las notificaciones
-                var result = await this.reporteConceptoRepository.EnviarNotificaciones(model);
+                var result = await this.reporteConceptoRepository.EnviarNotificaciones(model, User.GetId());
 
                 //enviamos las mismas
 

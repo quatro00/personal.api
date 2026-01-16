@@ -6,6 +6,7 @@
         public string Matricula { get; set; }
         public string Nombre { get; set; }
         public string Correo { get; set; }
+        public Guid OrganizacionId { get; set; }
         public List<NotificacionDetDto> Detalle { get; set; }
     }
 
