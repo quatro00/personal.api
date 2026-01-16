@@ -9,19 +9,21 @@ public partial class NotificacionDet
 
     public Guid NotificacionId { get; set; }
 
-    public Guid ConceptoId { get; set; }
+    public string Fecha { get; set; } = null!;
+
+    public string Concepto { get; set; } = null!;
+
+    public string Descripcion { get; set; } = null!;
+
+    public string IncEnt { get; set; } = null!;
+
+    public string IncSal { get; set; } = null!;
 
     public bool Activo { get; set; }
 
     public DateTime FechaCreacion { get; set; }
 
-    public Guid UsuarioCreacion { get; set; }
-
-    public DateTime? FechaModificacion { get; set; }
-
-    public Guid? UsuarioModificacion { get; set; }
-
-    public virtual Concepto Concepto { get; set; } = null!;
+    public string UsuarioCreacion { get; set; } = null!;
 
     public virtual Notificacion Notificacion { get; set; } = null!;
 }

@@ -25,8 +25,6 @@ public partial class Concepto
 
     public string? UsuarioModificacion { get; set; }
 
-    public virtual ICollection<NotificacionDet> NotificacionDets { get; set; } = new List<NotificacionDet>();
-
     public virtual Organizacion Organizacion { get; set; } = null!;
 
     public virtual CatTipoConcepto TipoConcepto { get; set; } = null!;

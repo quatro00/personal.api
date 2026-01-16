@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Personal.UI.Models.Domain;
-using Personal.UI.Models.DTO.Notificacion;
 
 namespace Personal.UI.Data;
 
@@ -87,17 +86,15 @@ public partial class PersonalContext : DbContext
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.Cc)
-                .HasMaxLength(250)
+                .HasMaxLength(50)
                 .HasColumnName("CC");
+            entity.Property(e => e.Correo).HasMaxLength(50);
             entity.Property(e => e.FechaCreacion).HasColumnType("datetime");
-            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
             entity.Property(e => e.Matricula).HasMaxLength(50);
+            entity.Property(e => e.Mensaje).HasMaxLength(250);
             entity.Property(e => e.Nombre).HasMaxLength(250);
-            entity.Property(e => e.Para).HasMaxLength(250);
             entity.Property(e => e.Quincena).HasMaxLength(50);
-            entity.Property(e => e.Titulo).HasMaxLength(250);
             entity.Property(e => e.UsuarioCreacion).HasMaxLength(50);
-            entity.Property(e => e.UsuarioModificacion).HasMaxLength(50);
 
             entity.HasOne(d => d.Organizacion).WithMany(p => p.Notificacions)
                 .HasForeignKey(d => d.OrganizacionId)
@@ -110,13 +107,13 @@ public partial class PersonalContext : DbContext
             entity.ToTable("NotificacionDet");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.Concepto).HasMaxLength(50);
+            entity.Property(e => e.Descripcion).HasMaxLength(250);
+            entity.Property(e => e.Fecha).HasMaxLength(50);
             entity.Property(e => e.FechaCreacion).HasColumnType("datetime");
-            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Concepto).WithMany(p => p.NotificacionDets)
-                .HasForeignKey(d => d.ConceptoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_NotificacionDet_Concepto");
+            entity.Property(e => e.IncEnt).HasMaxLength(50);
+            entity.Property(e => e.IncSal).HasMaxLength(50);
+            entity.Property(e => e.UsuarioCreacion).HasMaxLength(50);
 
             entity.HasOne(d => d.Notificacion).WithMany(p => p.NotificacionDets)
                 .HasForeignKey(d => d.NotificacionId)
