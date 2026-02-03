@@ -31,35 +31,61 @@ namespace Personal.UI.Repositories.Implementation
             var reporteConceptosList = await _context.Set<ReporteConcepto>().Where(x => x.OrganizacionId == organizacionId && x.Quincena == bitacora.Quincena).ToListAsync();
             var conceptosList = await _context.Set<Concepto>().Where(x => x.OrganizacionId == organizacionId && x.Activo == true).ToListAsync();
 
-            var conceptosGenerales = conceptosList.Where(x => x.TipoConceptoId == 1).Select(x => x.Clave).ToArray();
-            var conceptosEntrada = conceptosList.Where(x => x.TipoConceptoId == 2).Select(x => x.Clave).ToArray();
-            var conceptosSalida = conceptosList.Where(x => x.TipoConceptoId == 3).Select(x => x.Clave).ToArray();
+            var dicGenerales = conceptosList
+                .Where(x => x.TipoConceptoId == 1)
+                .ToDictionary(x => x.Clave, x => x.Descripcion);
 
-            reporteConceptosList = 
-                reporteConceptosList.Where(x => 
-                    conceptosGenerales.Contains(x.Concepto) || 
-                    conceptosEntrada.Contains(x.IncEntrada) || 
-                    conceptosSalida.Contains(x.IncSalida))
-                .ToList();
+            var dicEntrada = conceptosList
+                .Where(x => x.TipoConceptoId == 2)
+                .ToDictionary(x => x.Clave, x => x.Descripcion);
+
+            var dicSalida = conceptosList
+                .Where(x => x.TipoConceptoId == 3)
+                .ToDictionary(x => x.Clave, x => x.Descripcion);
+
+            //var conceptosGenerales = conceptosList.Where(x => x.TipoConceptoId == 1).Select(x => x.Clave).ToArray();
+            //var conceptosEntrada = conceptosList.Where(x => x.TipoConceptoId == 2).Select(x => x.Clave).ToArray();
+            //var conceptosSalida = conceptosList.Where(x => x.TipoConceptoId == 3).Select(x => x.Clave).ToArray();
+
+            reporteConceptosList = reporteConceptosList
+            .Where(x =>
+                dicGenerales.ContainsKey(x.Concepto) ||
+                dicEntrada.ContainsKey(x.IncEntrada) ||
+                dicSalida.ContainsKey(x.IncSalida))
+            .ToList();
 
             var resultado = reporteConceptosList
-            .GroupBy(x => new { x.Quincena, x.Matricula, x.Nombre })
-            .Select(g => new NotificacionDto
-            {
-                Quincena = g.Key.Quincena,
-                Matricula = g.Key.Matricula,
-                Nombre = g.Key.Nombre,
-                OrganizacionId = organizacionId,
-                Detalle = g.Select(x => new NotificacionDetDto
+                .GroupBy(x => new { x.Quincena, x.Matricula, x.Nombre })
+                .Select(g => new NotificacionDto
                 {
-                    Fecha = x.Fecha,
-                    Concepto = x.Concepto,
-                    Descripcion = x.Descripcion,
-                    IncEnt = x.IncEntrada,
-                    IncSal = x.IncSalida
-                }).OrderByDescending(x=>x.Fecha).ToList()
-            })
-            .ToList();
+                    Quincena = g.Key.Quincena,
+                    Matricula = g.Key.Matricula,
+                    Nombre = g.Key.Nombre,
+                    Detalle = g.Select(x =>
+                    {
+                        string descripcionCatalogo = null;
+
+                        if (!string.IsNullOrEmpty(x.Concepto) && dicGenerales.TryGetValue(x.Concepto, out var descGen))
+                            descripcionCatalogo = descGen;
+                        else if (!string.IsNullOrEmpty(x.IncEntrada) && dicEntrada.TryGetValue(x.IncEntrada, out var descEnt))
+                            descripcionCatalogo = descEnt;
+                        else if (!string.IsNullOrEmpty(x.IncSalida) && dicSalida.TryGetValue(x.IncSalida, out var descSal))
+                            descripcionCatalogo = descSal;
+
+                        return new NotificacionDetDto
+                        {
+                            Fecha = x.Fecha,
+                            Concepto = x.Concepto,
+                            Descripcion = descripcionCatalogo ?? "", // 👈 ahora viene del catálogo
+                            IncEnt = x.IncEntrada,
+                            IncSal = x.IncSalida
+                        };
+                    })
+                    .OrderByDescending(x => x.Fecha)
+                    .ToList()
+                })
+                .ToList();
+
             var matriculas = resultado
             .Select(x => int.Parse(x.Matricula.Trim()))
             .Distinct()
@@ -111,34 +137,60 @@ namespace Personal.UI.Repositories.Implementation
             //var reporteConceptosList = await reporteConceptos.Where(x => x.OrganizacionId == organizacionId && x.Quincena == quincena).ToListAsync();
             //var conceptosList = await conceptos.Where(x => x.OrganizacionId == organizacionId && x.Activo == true).ToListAsync();
 
-            var conceptosGenerales = conceptosList.Where(x => x.TipoConceptoId == 1).Select(x => x.Clave).ToArray();
-            var conceptosEntrada = conceptosList.Where(x => x.TipoConceptoId == 2).Select(x => x.Clave).ToArray();
-            var conceptosSalida = conceptosList.Where(x => x.TipoConceptoId == 3).Select(x => x.Clave).ToArray();
+            var dicGenerales = conceptosList
+                .Where(x => x.TipoConceptoId == 1)
+                .ToDictionary(x => x.Clave, x => x.Descripcion);
 
-            reporteConceptosList =
-                reporteConceptosList.Where(x =>
-                    conceptosGenerales.Contains(x.Concepto) ||
-                    conceptosEntrada.Contains(x.IncEntrada) ||
-                    conceptosSalida.Contains(x.IncSalida))
-                .ToList();
+            var dicEntrada = conceptosList
+                .Where(x => x.TipoConceptoId == 2)
+                .ToDictionary(x => x.Clave, x => x.Descripcion);
+
+            var dicSalida = conceptosList
+                .Where(x => x.TipoConceptoId == 3)
+                .ToDictionary(x => x.Clave, x => x.Descripcion);
+
+            //var conceptosGenerales = conceptosList.Where(x => x.TipoConceptoId == 1).Select(x => x.Clave).ToArray();
+            //var conceptosEntrada = conceptosList.Where(x => x.TipoConceptoId == 2).Select(x => x.Clave).ToArray();
+            //var conceptosSalida = conceptosList.Where(x => x.TipoConceptoId == 3).Select(x => x.Clave).ToArray();
+
+            reporteConceptosList = reporteConceptosList
+            .Where(x =>
+                dicGenerales.ContainsKey(x.Concepto) ||
+                dicEntrada.ContainsKey(x.IncEntrada) ||
+                dicSalida.ContainsKey(x.IncSalida))
+            .ToList();
 
             var resultado = reporteConceptosList
-            .GroupBy(x => new { x.Quincena, x.Matricula, x.Nombre })
-            .Select(g => new NotificacionDto
-            {
-                Quincena = g.Key.Quincena,
-                Matricula = g.Key.Matricula,
-                Nombre = g.Key.Nombre,
-                Detalle = g.Select(x => new NotificacionDetDto
+                .GroupBy(x => new { x.Quincena, x.Matricula, x.Nombre })
+                .Select(g => new NotificacionDto
                 {
-                    Fecha = x.Fecha,
-                    Concepto = x.Concepto,
-                    Descripcion = x.Descripcion,
-                    IncEnt = x.IncEntrada,
-                    IncSal = x.IncSalida
-                }).OrderByDescending(x => x.Fecha).ToList()
-            })
-            .ToList();
+                    Quincena = g.Key.Quincena,
+                    Matricula = g.Key.Matricula,
+                    Nombre = g.Key.Nombre,
+                    Detalle = g.Select(x =>
+                    {
+                        string descripcionCatalogo = null;
+
+                        if (!string.IsNullOrEmpty(x.Concepto) && dicGenerales.TryGetValue(x.Concepto, out var descGen))
+                            descripcionCatalogo = descGen;
+                        else if (!string.IsNullOrEmpty(x.IncEntrada) && dicEntrada.TryGetValue(x.IncEntrada, out var descEnt))
+                            descripcionCatalogo = descEnt;
+                        else if (!string.IsNullOrEmpty(x.IncSalida) && dicSalida.TryGetValue(x.IncSalida, out var descSal))
+                            descripcionCatalogo = descSal;
+
+                        return new NotificacionDetDto
+                        {
+                            Fecha = x.Fecha,
+                            Concepto = x.Concepto,
+                            Descripcion = descripcionCatalogo ?? "", // 👈 ahora viene del catálogo
+                            IncEnt = x.IncEntrada,
+                            IncSal = x.IncSalida
+                        };
+                    })
+                    .OrderByDescending(x => x.Fecha)
+                    .ToList()
+                })
+                .ToList();
 
             var matriculas = resultado
             .Select(x => int.Parse(x.Matricula.Trim()))
@@ -307,8 +359,8 @@ namespace Personal.UI.Repositories.Implementation
                         }
                     }
                 }
-                await this._context.Set<Notificacion>().AddRangeAsync(notificaciones);
-                await this._context.SaveChangesAsync();
+                //await this._context.Set<Notificacion>().AddRangeAsync(notificaciones);
+                //await this._context.SaveChangesAsync();
             }
             catch
             {
