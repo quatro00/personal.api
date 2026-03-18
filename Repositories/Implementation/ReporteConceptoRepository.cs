@@ -61,6 +61,7 @@ namespace Personal.UI.Repositories.Implementation
                     Quincena = g.Key.Quincena,
                     Matricula = g.Key.Matricula,
                     Nombre = g.Key.Nombre,
+                    OrganizacionId = organizacionId,
                     Detalle = g.Select(x =>
                     {
                         string descripcionCatalogo = null;

@@ -27,7 +27,7 @@ namespace Personal.UI.Controllers.Admin
         }
 
         [HttpPost("CalcularNotificaciones")]
-        [Authorize(Roles = "Administrador")]
+        //[Authorize(Roles = "Administrador")]
         public async Task<IActionResult> CalcularNotificaciones([FromBody] CalcularNotificacionesRequest model)
         {
             // Validar si el modelo es válido
