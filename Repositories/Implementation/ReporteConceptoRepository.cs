@@ -257,115 +257,75 @@ namespace Personal.UI.Repositories.Implementation
         public async Task<ResponseModel> EnviarNotificaciones(List<NotificacionDto> model, string usuarioId)
         {
             ResponseModel resultado = new ResponseModel();
-            try
-            {
-                List<Notificacion> notificaciones = new List<Notificacion>();
-                var fromAddress = new MailAddress("f19668@365i.team", "UMAE 25 Adquisiciones");
-                string fromPassword = "Suikoden2";
 
-                var path = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "Temp",
-                "NotificacionIncidencias.html"
-            );
-                foreach(var item in model)
+            var notificaciones = new List<Notificacion>();
+
+            var apiUrl = "https://apinotificacion.portalito.mx/api/integraciones/envios";
+            var apiKey = "ec_live_dII3WV-7NJKNcuMrBY6E7O2X4Degp3LsxnPlV-78JfQ";
+
+            var loteId = Guid.NewGuid().ToString("N");
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+
+            foreach (var item in model)
+            {
+                if (string.IsNullOrWhiteSpace(item.Correo))
                 {
-                    if(item.Correo != "")
-                    {
-                        string html = File.ReadAllText(path);
-                        string tabla = "";
-                        foreach (var det in item.Detalle)
-                        {
-                            tabla = tabla + "<tr>" +
-                                "<td style=\"border:1px solid #dcdcdc;\">" + det.Fecha + "</td>" +
-                                "<td style=\"border:1px solid #dcdcdc;\">" + det.Concepto + "</td>" +
-                                "<td style=\"border:1px solid #dcdcdc;\">" + det.Descripcion + "</td>" +
-                                "<td style=\"border:1px solid #dcdcdc; text-align:center;\">" + det.IncEnt + "</td>" +
-                                "<td style=\"border:1px solid #dcdcdc; text-align:center;\">" + det.IncSal + "</td>" +
-                                "</tr>";
-                        }
-                        html = html
-                        .Replace("{{#Nombre}}", item.Nombre)
-                        .Replace("{{#Quincena}}", item.Quincena)
-                        .Replace("{{#Matricula}}", item.Matricula)
-                        .Replace("{{#Tabla}}", tabla);
-
-                        var smtp = new SmtpClient
-                        {
-                            Host = "smtp.office365.com",
-                            Port = 587,
-                            UseDefaultCredentials = false,
-                            DeliveryMethod = SmtpDeliveryMethod.Network,
-                            Credentials = new NetworkCredential(fromAddress.Address, fromPassword),
-                            TargetName = "STARTTLS/smtp.office365.com", // Set to avoid MustIssueStartTlsFirst exception
-                            EnableSsl = true,
-                        };
-
-                        using (var message = new MailMessage("f19668@365i.team", item.Correo)
-                        {
-                            IsBodyHtml = true,
-                            Subject = "documentacion pendiente",
-                            Body = html
-                        })
-                        {
-
-                            //Attachment at = new Attachment(ruta, MediaTypeNames.Application.Octet);
-                            //message.Attachments.Add(at);
-
-                            //message.CC.Add(new MailAddress("alejandro.jimenezga@imss.gob.mx"));
-                            Notificacion notificacion = new Notificacion()
-                            {
-                                OrganizacionId = item.OrganizacionId,
-                                Quincena = item.Quincena,
-                                Matricula = item.Matricula,
-                                Nombre = item.Nombre,
-                                Correo = item.Correo,
-                                Cc = "",
-                                Enviado = false,
-                                Mensaje = "",
-                                Activo = true,
-                                FechaCreacion = DateTime.Now,
-                                UsuarioCreacion = usuarioId,
-                                NotificacionDets = item.Detalle.Select(x => new NotificacionDet()
-                                {
-                                    Fecha = x.Fecha,
-                                    Concepto = x.Concepto,
-                                    Descripcion = x.Descripcion,
-                                    IncEnt = x.IncEnt,
-                                    IncSal = x.IncSal,
-                                    Activo = true,
-                                    FechaCreacion = DateTime.Now,
-                                    UsuarioCreacion = usuarioId,
-                                }).ToList()
-                            };
-                            try
-                            {
-                                smtp.Send(message);
-                                notificacion.Enviado = true;
-                                notificacion.Mensaje = "Correo enviado correctamente.";
-                                notificaciones.Add(notificacion);
-                                //await this._context.Set<Notificacion>().AddAsync(notificacion);
-
-                            }
-                            catch (Exception ioe)
-                            {
-                                //marcamos el estatus como error en envio de notificacion
-                                //(new PenalizacionBL()).ActuallizarEstatusPenalizacion(model.Folio, 5, SessionHelper.GetFullUser().Matricula);
-                                notificacion.Enviado = false;
-                                notificacion.Mensaje = ioe.Message;
-                                notificaciones.Add(notificacion);
-                                int x = 0;
-                            }
-
-                        }
-                    }
+                    continue;
                 }
-                //await this._context.Set<Notificacion>().AddRangeAsync(notificaciones);
-                //await this._context.SaveChangesAsync();
-            }
-            catch
-            {
-                throw;
+
+                var idempotencyKey = $"notificacion-incidencia-{item.Matricula}-{item.Quincena}-{loteId}"
+                    .Replace("/", "-")
+                    .Replace(" ", "-")
+                    .ToLower();
+
+                var referenciaExterna = $"NOTIFICACION-{item.Matricula}-{item.Quincena}-{loteId}"
+                    .Replace("/", "-")
+                    .Replace(" ", "-")
+                    .ToUpper();
+
+                var request = new
+                {
+                    aplicacionClave = "IMSS_PERSONAL",
+                    claveTemplate = "DOCUMENTACION_PENDIENTE",
+                    referenciaExterna,
+                    payload = new
+                    {
+                        Nombre = item.Nombre,
+                        Quincena = item.Quincena,
+                        Matricula = item.Matricula,
+                        Tabla = item.Detalle.Select(det => new
+                        {
+                            Fecha = det.Fecha,
+                            Concepto = det.Concepto,
+                            Descripcion = det.Descripcion,
+                            Entrada = det.IncEnt,
+                            Salida = det.IncSal
+                        }).ToList()
+                    },
+                    destinatarios = new[]
+                    {
+                new
+                {
+                    tipo = "TO",
+                    email = item.Correo,
+                    nombre = item.Nombre
+                }
+            },
+                    prioridad = 5,
+                    maxIntentos = 3,
+                    procesarAhora = false
+                };
+
+                using var httpRequest = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+                httpRequest.Headers.Add("Idempotency-Key", idempotencyKey);
+                httpRequest.Content = JsonContent.Create(request);
+
+                var response = await httpClient.SendAsync(httpRequest);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                // aquí manejas response igual que ya lo venías haciendo
             }
 
             return resultado;
