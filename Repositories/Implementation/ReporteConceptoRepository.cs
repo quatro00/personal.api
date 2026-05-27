@@ -10,6 +10,10 @@ using System.Data;
 using System.Net;
 using System.Net.Mail;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+
 
 namespace Personal.UI.Repositories.Implementation
 {
@@ -320,7 +324,20 @@ namespace Personal.UI.Repositories.Implementation
 
                 using var httpRequest = new HttpRequestMessage(HttpMethod.Post, apiUrl);
                 httpRequest.Headers.Add("Idempotency-Key", idempotencyKey);
-                httpRequest.Content = JsonContent.Create(request);
+
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = null
+                };
+
+                var json = JsonSerializer.Serialize(request, jsonOptions);
+
+                httpRequest.Content = new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json"
+                );
 
                 var response = await httpClient.SendAsync(httpRequest);
                 var responseBody = await response.Content.ReadAsStringAsync();
