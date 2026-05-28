@@ -262,23 +262,97 @@ namespace Personal.UI.Repositories.Implementation
         {
             ResponseModel resultado = new ResponseModel();
 
-            var notificaciones = new List<Notificacion>();
+            if (model == null || !model.Any())
+            {
+                resultado.SetResponse(false, "No se recibieron notificaciones para enviar.");
+                return resultado;
+            }
+
+            var correosInvalidos = new List<CorreoInvalidoDto>();
+
+            foreach (var item in model)
+            {
+                var correo = item.Correo?.Trim();
+
+                if (string.IsNullOrWhiteSpace(correo))
+                {
+                    correosInvalidos.Add(new CorreoInvalidoDto
+                    {
+                        Matricula = item.Matricula,
+                        Mensaje = $"Matrícula {item.Matricula}: no tiene correo."
+                    });
+
+                    continue;
+                }
+
+                if (!TieneUnSoloCorreo(correo))
+                {
+                    correosInvalidos.Add(new CorreoInvalidoDto
+                    {
+                        Matricula = item.Matricula,
+                        Mensaje = $"Matrícula {item.Matricula}: contiene más de un correo o separadores no permitidos. Valor: {correo}"
+                    });
+
+                    continue;
+                }
+
+                if (!EsCorreoValido(correo))
+                {
+                    correosInvalidos.Add(new CorreoInvalidoDto
+                    {
+                        Matricula = item.Matricula,
+                        Mensaje = $"Matrícula {item.Matricula}: correo inválido. Valor: {correo}"
+                    });
+
+                    continue;
+                }
+
+                item.Correo = correo;
+            }
+
+            if (correosInvalidos.Any())
+            {
+                var matriculasInvalidas = correosInvalidos
+                    .Select(x => x.Matricula)
+                    .Distinct()
+                    .ToList();
+
+                resultado.SetResponse(
+                    false,
+                    $"Existen correos inválidos para las siguientes matrículas: {string.Join(", ", matriculasInvalidas)}. No se generó ningún envío."
+                );
+
+                resultado.result = correosInvalidos;
+                resultado.data = string.Join(Environment.NewLine, correosInvalidos.Select(x => x.Mensaje));
+
+                return resultado;
+            }
+
+            if (correosInvalidos.Any())
+            {
+                resultado.SetResponse(false, "Existen correos inválidos. No se generó ningún envío.");
+                resultado.result = correosInvalidos;
+                resultado.data = string.Join(Environment.NewLine, correosInvalidos);
+                return resultado;
+            }
 
             var apiUrl = "https://apinotificacion.portalito.mx/api/integraciones/envios";
-            var apiKey = "ec_live_dII3WV-7NJKNcuMrBY6E7O2X4Degp3LsxnPlV-78JfQ";
+
+            // Recomendado: mover a appsettings.json
+            var apiKey = "TU_API_KEY";
 
             var loteId = Guid.NewGuid().ToString("N");
 
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null
+            };
+
             foreach (var item in model)
             {
-                if (string.IsNullOrWhiteSpace(item.Correo))
-                {
-                    continue;
-                }
-
                 var idempotencyKey = $"notificacion-incidencia-{item.Matricula}-{item.Quincena}-{loteId}"
                     .Replace("/", "-")
                     .Replace(" ", "-")
@@ -325,12 +399,6 @@ namespace Personal.UI.Repositories.Implementation
                 using var httpRequest = new HttpRequestMessage(HttpMethod.Post, apiUrl);
                 httpRequest.Headers.Add("Idempotency-Key", idempotencyKey);
 
-
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = null
-                };
-
                 var json = JsonSerializer.Serialize(request, jsonOptions);
 
                 httpRequest.Content = new StringContent(
@@ -342,10 +410,48 @@ namespace Personal.UI.Repositories.Implementation
                 var response = await httpClient.SendAsync(httpRequest);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
-                // aquí manejas response igual que ya lo venías haciendo
+                if (!response.IsSuccessStatusCode)
+                {
+                    resultado.SetResponse(false, $"Error al generar envío para matrícula {item.Matricula}.");
+                    resultado.data = responseBody;
+                    resultado.result = new
+                    {
+                        item.Matricula,
+                        item.Correo,
+                        StatusCode = response.StatusCode,
+                        ResponseBody = responseBody
+                    };
+
+                    return resultado;
+                }
             }
 
+            resultado.SetResponse(true, "Notificaciones generadas correctamente.");
             return resultado;
+        }
+
+        private static bool TieneUnSoloCorreo(string correo)
+        {
+            if (string.IsNullOrWhiteSpace(correo))
+                return false;
+
+            var separadores = new[] { ",", ";", "|", " " };
+
+            return !separadores.Any(correo.Contains);
+        }
+
+        private static bool EsCorreoValido(string correo)
+        {
+            try
+            {
+                var mail = new MailAddress(correo);
+
+                return mail.Address.Equals(correo, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task GuardarReporteConBitacoraAsync(IEnumerable<ReporteConcepto> conceptos, ReporteConceptosBitacora bitacora)
@@ -376,5 +482,11 @@ namespace Personal.UI.Repositories.Implementation
                 throw;
             }
         }
+    }
+
+    public class CorreoInvalidoDto
+    {
+        public string Matricula { get; set; }
+        public string Mensaje { get; set; }
     }
 }
