@@ -322,8 +322,8 @@ namespace Personal.UI.Repositories.Implementation
                     $"Existen correos inválidos para las siguientes matrículas: {string.Join(", ", matriculasInvalidas)}. No se generó ningún envío."
                 );
 
-                resultado.result = correosInvalidos;
-                resultado.data = string.Join(Environment.NewLine, correosInvalidos.Select(x => x.Mensaje));
+                //resultado.result = correosInvalidos;
+                //resultado.data = string.Join(Environment.NewLine, correosInvalidos.Select(x => x.Mensaje));
 
                 return resultado;
             }
@@ -339,7 +339,7 @@ namespace Personal.UI.Repositories.Implementation
             var apiUrl = "https://apinotificacion.portalito.mx/api/integraciones/envios";
 
             // Recomendado: mover a appsettings.json
-            var apiKey = "TU_API_KEY";
+            var apiKey = "ec_live_dII3WV-7NJKNcuMrBY6E7O2X4Degp3LsxnPlV-78JfQ";
 
             var loteId = Guid.NewGuid().ToString("N");
 

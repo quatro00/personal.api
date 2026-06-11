@@ -109,7 +109,12 @@ namespace Personal.UI.Controllers.Admin
                 //await this.conceptoRepository.AddAsync(dto);
 
                 //// Devolver la respuesta con el nuevo paciente
-                return Ok();
+                if(result.response == false)
+                {
+                    return StatusCode(500, result.message); // O devolver un BadRequest(400) si el error es de entrada
+                }
+                return Ok(result);
+
             }
             catch (Exception ex)
             {
